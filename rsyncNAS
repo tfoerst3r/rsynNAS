@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: Copyright (c) 2025 tfoerst3r
+# SPDX-License-Identifier: MIT
+
+# Name        : rsyncNAS
+# Version     : 0.1.0
+# Description : Syncing my resources with a NAS
+# Required    : -
+# Note        : -
+
+#==========#
+#== INIT ==#
+#==========#
+LOG=$0.log
+RSYNC="/usr/bin/rsync"
+
+CONF_BASE="\
+--dry-run \
+--progress \
+--delete-after \
+--recursive \
+--chmod=D755,F644 \
+--no-owner \
+--no-group \
+--verbose \
+--acls \
+--xattrs \
+--omit-dir-times"
+
+
+SOURCE=(
+"$HOME/"
+"$HOME/education/"
+"$HOME/development/"
+)
+
+TARGET=(
+"/mnt/nas/sync/tleptop/"
+"/mnt/nas/education/"
+"/mnt/nas/development/"
+)
+
+CONF=(
+# leptop
+"\
+--include .alias \
+--include .bashrc \
+--include .fluent \
+--include .git \
+--include .gitignore \
+--include .gitattributes \
+--include .vimrc \
+--include .thunderbird \
+--exclude $LOG \
+--exclude _scans/ \
+--exclude lost+found/ \
+--exclude later/ \
+--exclude sandbox/ \
+--exclude snap/ \
+--exclude software/ \
+--exclude sorting/ \
+--exclude sort/ \
+--exclude tmp/ \
+--exclude ./audio/ \
+--exclude ./desktop/ \
+--exclude ./downloads/ \
+--exclude ./dwhelper/ \
+--exclude ./installations/ \
+--exclude ./libs/ \
+--exclude ./media/ \
+--exclude ./opt/ \
+--exclude ./transfer/ \
+--exclude ./VMs/ \
+--exclude ./development/ \
+--exclude ./education/ \
+--exclude #recycle \
+--exclude ./.*"
+
+# education
+"\
+"
+# development
+"\
+"
+)
+
+#================#
+#== USER INPUT ==#
+#================#
+
+#===============#
+#== FUNCTIONS ==#
+#===============#
+
+#--- Set Variables ---#
+function set_variables {
+index_length=${#SOURCE[@]}
+}
+
+#-----Tests-----#
+
+function test_length_array {
+  local slen=${#SOURCE[@]}
+  local tlen=${#TARGET[@]}
+  local clen=${#CONF[@]}
+
+  if (( slen != tlen || slen != clen )); then
+    echo "Error: Array lengths do not match!" >&2
+    exit 1
+  fi
+}
+
+function test_mountpoints {
+for (( i=0; i<index_length; i++ )); do
+    if [[ ! -d "${TARGET[i]}" ]]; then
+        echo "Folder ${TARGET[i]} is not mounted! SOURCE(${slen}), TARGET(${tlen}), CONF(${clen})" >&2
+        exit 1
+    fi
+done
+}
+
+function test_all {
+  test_length_array
+  test_mountpoints
+}
+
+#--- Main Function ---#
+
+function main {
+
+echo "-------------------"
+echo "Starting syncing..."
+echo "-------------------"
+
+for (( i=0; i<index_length; i++ )); do
+  
+  echo "$RSYNC $CONF_BASE ${CONF[i]} ${SOURCE[i]} ${TARGET[i]}"
+  #$RSYNC $CONF_BASE ${CONF[i]} ${SOURCE[i]} ${TARGET[i]} >> $LOG 2>&1
+
+  echo "------------------------------------------"
+  echo "...Done syncing ${SOURCE[i]}"
+  echo "------------------------------------------"
+
+done
+
+}
+
+#==========#
+#== MAIN ==#
+#==========#
+set_variables
+test_all
+main
+

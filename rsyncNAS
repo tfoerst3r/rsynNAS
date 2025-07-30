@@ -4,7 +4,7 @@
 
 # Name        : rsyncNAS
 # Version     : 0.1.0
-# Description : Syncing my resources with a NAS
+# Description : Syncing resources with a NAS
 # Required    : -
 # Note        : -
 
@@ -15,73 +15,41 @@ LOG=$0.log
 RSYNC="/usr/bin/rsync"
 
 CONF_BASE="\
---dry-run \
+-a \
+--verbose \
+--no-perms \
+--no-owner \
+--no-group \
 --progress \
 --delete-after \
 --recursive \
---chmod=D755,F644 \
---no-owner \
---no-group \
---verbose \
 --acls \
 --xattrs \
 --omit-dir-times"
+#--chmod=D755,F644 \
 
-
-SOURCE=(
+SOURCES=(
 "$HOME/"
 "$HOME/education/"
 "$HOME/development/"
 )
 
-TARGET=(
+TARGETS=(
 "/mnt/nas/sync/tleptop/"
 "/mnt/nas/education/"
 "/mnt/nas/development/"
 )
 
-CONF=(
+# Issue: elements which contain a space are not correctly concatenated!
+CONFS=(
 # leptop
-"\
---include .alias \
---include .bashrc \
---include .fluent \
---include .git \
---include .gitignore \
---include .gitattributes \
---include .vimrc \
---include .thunderbird \
---exclude $LOG \
---exclude _scans/ \
---exclude lost+found/ \
---exclude later/ \
---exclude sandbox/ \
---exclude snap/ \
---exclude software/ \
---exclude sorting/ \
---exclude sort/ \
---exclude tmp/ \
---exclude ./audio/ \
---exclude ./desktop/ \
---exclude ./downloads/ \
---exclude ./dwhelper/ \
---exclude ./installations/ \
---exclude ./libs/ \
---exclude ./media/ \
---exclude ./opt/ \
---exclude ./transfer/ \
---exclude ./VMs/ \
---exclude ./development/ \
---exclude ./education/ \
---exclude #recycle \
---exclude ./.*"
+""
 
 # education
-"\
-"
+""
+
 # development
-"\
-"
+""
 )
 
 #================#
@@ -94,15 +62,15 @@ CONF=(
 
 #--- Set Variables ---#
 function set_variables {
-index_length=${#SOURCE[@]}
+index_length=${#SOURCES[@]}
 }
 
 #-----Tests-----#
 
 function test_length_array {
-  local slen=${#SOURCE[@]}
-  local tlen=${#TARGET[@]}
-  local clen=${#CONF[@]}
+  local slen=${#SOURCES[@]}
+  local tlen=${#TARGETS[@]}
+  local clen=${#CONFS[@]}
 
   if (( slen != tlen || slen != clen )); then
     echo "Error: Array lengths do not match!" >&2
@@ -112,8 +80,8 @@ function test_length_array {
 
 function test_mountpoints {
 for (( i=0; i<index_length; i++ )); do
-    if [[ ! -d "${TARGET[i]}" ]]; then
-        echo "Folder ${TARGET[i]} is not mounted! SOURCE(${slen}), TARGET(${tlen}), CONF(${clen})" >&2
+    if [[ ! -d "${TARGETS[i]}" ]]; then
+        echo "Folder ${TARGETS[i]} is not mounted! SOURCES(${slen}), TARGETS(${tlen}), CONFS(${clen})" >&2
         exit 1
     fi
 done
@@ -134,11 +102,16 @@ echo "-------------------"
 
 for (( i=0; i<index_length; i++ )); do
   
-  echo "$RSYNC $CONF_BASE ${CONF[i]} ${SOURCE[i]} ${TARGET[i]}"
-  #$RSYNC $CONF_BASE ${CONF[i]} ${SOURCE[i]} ${TARGET[i]} >> $LOG 2>&1
+  #TODO: options with spaces are not correctly parsed; issue with --filter! 
+  
+  echo "$RSYNC $CONF_BASE --filter=\"merge ${SOURCES[i]}.rsync-filter\" --exclude='$LOG' ${SOURCES[i]} ${TARGETS[i]} > $LOG$i"
+  $RSYNC \
+      $CONF_BASE --filter="merge ${SOURCES[i]}.rsync-filter" --exclude='$LOG' \
+      ${SOURCES[i]} \
+      ${TARGETS[i]} > "$LOG$i"
 
   echo "------------------------------------------"
-  echo "...Done syncing ${SOURCE[i]}"
+  echo "...Done syncing ${SOURCES[i]}"
   echo "------------------------------------------"
 
 done

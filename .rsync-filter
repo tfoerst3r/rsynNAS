@@ -1,0 +1,43 @@
+# EXCEPT for these specific hidden files/directories
++ .alias
++ .bashrc
++ .fluent/
++ .git/
++ .gitignore
++ .gitattributes
++ .vimrc
++ .thunderbird/
+
+# Make sure all directories are traversed (this must come BEFORE the general exclude of .*)
+#+ */
+
+# Exclude all hidden files and directories
+- .*
+- .*/
+
+# Excluding tmp folders
+- test/
+- shared/
+- _scans/
+- lost+found/
+- later/
+- sandbox/
+- snap/
+- software/
+- sorting/
+- sort/
+- tmp/
+- audio/
+- desktop/
+- downloads/
+- dwhelper/
+- installations/
+- libs/
+- media/
+- opt/
+- transfer/
+- VMs/
+- development/
+- education/
+- #recycle/
+

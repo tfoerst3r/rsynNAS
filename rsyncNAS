@@ -11,10 +11,10 @@
 #==========#
 #== INIT ==#
 #==========#
-LOG=$0.log
 RSYNC="/usr/bin/rsync"
 
 CONF_BASE="\
+--dry-run \
 -a \
 --verbose \
 --no-perms \
@@ -32,23 +32,25 @@ SOURCES=(
 "$HOME/"
 "$HOME/education/"
 "$HOME/development/"
+"$HOME/literature/"
 )
 
 TARGETS=(
 "/mnt/nas/sync/tleptop/"
 "/mnt/nas/education/"
 "/mnt/nas/development/"
+"/mnt/nas/literature/"
 )
 
 # Issue: elements which contain a space are not correctly concatenated!
 CONFS=(
 # leptop
 ""
-
 # education
 ""
-
 # development
+""
+# literature
 ""
 )
 
@@ -102,13 +104,16 @@ echo "-------------------"
 
 for (( i=0; i<index_length; i++ )); do
   
-  #TODO: options with spaces are not correctly parsed; issue with --filter! 
+  # TODO: options with spaces are not correctly parsed; issue with --filter! 
+  # Therefor CONF is not working!
   
-  echo "$RSYNC $CONF_BASE --filter=\"merge ${SOURCES[i]}.rsync-filter\" --exclude='$LOG' ${SOURCES[i]} ${TARGETS[i]} > $LOG$i"
+  LOG=$0$i.log
+  
+  echo "$RSYNC $CONF_BASE --filter=\"merge ${SOURCES[i]}.rsync-filter\" --exclude='$LOG' ${SOURCES[i]} ${TARGETS[i]} > $LOG"
   $RSYNC \
       $CONF_BASE --filter="merge ${SOURCES[i]}.rsync-filter" --exclude='$LOG' \
       ${SOURCES[i]} \
-      ${TARGETS[i]} > "$LOG$i"
+      ${TARGETS[i]} > "$LOG"
 
   echo "------------------------------------------"
   echo "...Done syncing ${SOURCES[i]}"

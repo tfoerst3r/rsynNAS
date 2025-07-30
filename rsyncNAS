@@ -14,7 +14,6 @@
 RSYNC="/usr/bin/rsync"
 
 CONF_BASE="\
---dry-run \
 -a \
 --verbose \
 --no-perms \
@@ -27,12 +26,14 @@ CONF_BASE="\
 --xattrs \
 --omit-dir-times"
 #--chmod=D755,F644 \
+#--dry-run \
 
 SOURCES=(
 "$HOME/"
 "$HOME/education/"
 "$HOME/development/"
 "$HOME/literature/"
+"$HOME/notes/"
 )
 
 TARGETS=(
@@ -40,6 +41,7 @@ TARGETS=(
 "/mnt/nas/education/"
 "/mnt/nas/development/"
 "/mnt/nas/literature/"
+"/mnt/nas/notes/"
 )
 
 # Issue: elements which contain a space are not correctly concatenated!
@@ -51,6 +53,8 @@ CONFS=(
 # development
 ""
 # literature
+""
+# notes
 ""
 )
 
@@ -70,20 +74,21 @@ index_length=${#SOURCES[@]}
 #-----Tests-----#
 
 function test_length_array {
-  local slen=${#SOURCES[@]}
-  local tlen=${#TARGETS[@]}
-  local clen=${#CONFS[@]}
 
-  if (( slen != tlen || slen != clen )); then
-    echo "Error: Array lengths do not match!" >&2
-    exit 1
-  fi
+local slen=${#SOURCES[@]}
+local tlen=${#TARGETS[@]}
+local clen=${#CONFS[@]}
+
+if (( slen != tlen || slen != clen )); then
+  echo "Error: Array lengths do not match! SOURCES(${slen}), TARGETS(${tlen}), CONFS(${clen})" >&2
+  exit 1
+fi
 }
 
 function test_mountpoints {
 for (( i=0; i<index_length; i++ )); do
     if [[ ! -d "${TARGETS[i]}" ]]; then
-        echo "Folder ${TARGETS[i]} is not mounted! SOURCES(${slen}), TARGETS(${tlen}), CONFS(${clen})" >&2
+        echo "Folder ${TARGETS[i]} is not mounted!" >&2
         exit 1
     fi
 done
